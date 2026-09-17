@@ -744,10 +744,13 @@ Result:
 
 Insight: Ambulatory encounters account for the largest share (44%), followed by outpatient encounters at 22%. Inpatient encounters represent the smallest proportion among the listed encounter classes at 4%.
 
-Average Encounter Duration
+**Average Encounter Duration**
+
 Average encounter duration was analyzed across encounter classes.
 
 SQL Queries:
+
+```SQL
 --Average Length of Encounter (Duration)
 Select 
 	EncounterClass,
@@ -756,19 +759,22 @@ Select
 From Encounters
 Group By
 	EncounterClass
-
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Average%20Length%20of%20Encounter.png)
 
 Insight: Inpatient encounters have the longest average duration at 36, while wellness and urgent care encounters have an average duration of 0 based on the calculated values.
 
-Top Diagnoses by Frequency and Cost
+**Top Diagnoses by Frequency and Cost**
+
 Diagnoses were analyzed using encounter frequency, average cost, and total cost to identify conditions with significant healthcare activity or financial impact.
 
 SQL Queries:
---5. Top Diagonises by frequency and cost
+
+```SQL
+--Top Diagonises by frequency and cost
 Select Top 10
 	ReasonDescription,
 	Count(*) As Encounter_Count,
@@ -780,19 +786,22 @@ Where
 Group by ReasonDescription
 Order by
 	Total_cost Desc
-
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Top%20Diagonises%20by%20Frequency%20and%20Cost.png)
 
 Insight: Chronic congestive heart failure has the highest encounter frequency among the listed diagnoses, with 1,738 encounters. Normal pregnancy has the highest total cost at approximately $20.9 million. Sepsis has the highest average cost per encounter at approximately $161,113, despite only four recorded encounters.
 
-Patient Readmission Analysis
+**Patient Readmission Analysis**
+
 A self-join analysis was used to identify patients with multiple healthcare encounters and examine the frequency of repeated encounters.
 
 SQL Queries:
---6. Top 20 Readmission Rates (Self Join)
+
+```SQL
+--Top 20 Readmission Rates (Self Join)
 Select Top 20
 	e1.patient,
 	Count (*) As Readmission_Count
@@ -804,26 +813,30 @@ And e1.ID <> e2.ID
 And DATEDIFF(Day, e1.stop, e2.start) Between 1 and 30
 Group by e1.patient
 Having Count(*) > 1
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Top%2020%20Readmission%20Rates.png)
 
 Insight: The results show substantial variation in repeated healthcare encounters across patients. One patient recorded 824 repeated encounters, while several patients recorded only two or a few encounters. Patients with unusually high encounter counts may warrant further investigation into chronic conditions, recurring care, or data patterns.
 
-Encounter Cost Analysis
+**Encounter Cost Analysis**
+
 Encounter costs were analyzed using base encounter cost, total claim cost, and payer coverage.
 
 Overall Cost Result:
 
-Metric	Value
-Average Base Cost	$116
-Average Claim Cost	$3,640
-Total Base Cost	$3,240,421
-Total Claim Cost	$101,514,375
+| Metric | Value |
+|---|---:|
+| Average Base Cost | $116 |
+| Average Claim Cost | $3,640 |
+| Total Base Cost | $3,240,421 |
+| Total Claim Cost | $101,514,375 |
 
 SQL Queries:
---7. Cost Analysis
+
+```SQL
 	--a. Average Base Cost
 Select 
 	Concat('$', Format(AVG(Base_Encounter_Cost), 'N0')) As Avg_Base_Cost		
@@ -843,10 +856,13 @@ From Encounters
 Select
 	Concat('$', Format(Sum(Total_Claim_Cost), 'N0')) As total_Claim_Cost 
 From Encounters
+```
 
 Payer Coverage Result:
 
 SQL Queries:
+
+```SQL
 	--e. Coverage percentage by payer
 Select
 	Payers.Name As Payer_Name,
@@ -856,22 +872,24 @@ Join Payers
 On
 Encounters.Payer = Payers.ID
 Group by Payers.Name
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Coverage%20Percentage%20by%20Payer.png)
 
 Insight: The dataset contains approximately $101.5 million in total claim costs, compared with approximately $3.24 million in total base costs. Among the listed payers, Medicaid has the highest average coverage at 74.55%, followed by Medicare at 62.95%. Several payers show very low or zero average coverage in the calculated results.
 
-INSURANCE & FINANCIAL ANALYSIS
+## INSURANCE & FINANCIAL ANALYSIS
 This section examines healthcare costs, payer contributions, insurance coverage, and patient out-of-pocket expenses to understand the financial aspects of healthcare utilization.
 
-Total Claim Cost by Payer and Average Claim Cost by Payer
+**Total Claim Cost by Payer and Average Claim Cost by Payer**
+
 Total claim costs, encounter volumes, and average claim costs were analyzed by payer.
 
+```SQL
 SQL Queries:
---G. Insurance and Financial Analysis
---1. Total Claim cost by payer (Who pays the most)
+--Total Claim cost by payer (Who pays the most)
 Select
 	Payers.Name As Payer_Name,
 	Round(Sum(encounters.Total_Claim_Cost),2) As Total_Claim_Cost,
@@ -883,18 +901,21 @@ On
 Encounters.payer = Payers.Id
 Group by Payers.Name
 Order by Total_Claim_Cost
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Total%20Claim%20cost%20by%20payer.png)
 
 Insight: NO_INSURANCE accounts for the largest total claim cost at approximately $49.3 million, while Medicare has the highest encounter volume with 11,371 encounters. Medicaid has the highest average claim cost per encounter at approximately $6,205.
 
-Payer Coverage Ratio and Average Out-of-Pocket Cost by Payer
+**Payer Coverage Ratio and Average Out-of-Pocket Cost by Payer**
+
 Average payer coverage and average patient out-of-pocket costs were analyzed to understand the level of financial protection provided by each payer.
 
 SQL Queries:
---2. Payer Coverage Ratio
+
+```SQL
 --This measures how much of the total claim cost is covered by insurance versus paid by patients
 Select
 	Payers.Name,
@@ -906,18 +927,21 @@ On
 Encounters.Payer = Payers.Id
 Group by Payers.Name
 Order by Avg_Coverage_Percentage DESC
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Payer%20Coverage%20Ratio.png)
 
 Insight: Medicaid has the highest average coverage at 74.55%, while Medicare provides 62.95% average coverage. NO_INSURANCE has no payer coverage and the highest average out-of-pocket cost at $5,593.20.
 
-Out-of-Pocket Cost by Age Group
+**Out-of-Pocket Cost by Age Group**
+
 Out-of-pocket costs, average coverage, and encounter volume were analyzed across age groups.
 
 SQL Queries:
---3. Out of pocket cost burden by patient demographics.
+
+```SQL
 	--Examining whether certain groups (by age or gender) pay more out of pocket than others
 	--a. By Age Group
 Select
@@ -945,17 +969,21 @@ Group by
 	End
 Order By 
 	Age_Group
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Out%20of%20pocket%20cost%20burden%20by%20Age%20Group.png)
 
 Insight: The 18–34 age group has the highest average out-of-pocket cost ($4,868.63) and relatively low average coverage of 21.29%. The 75+ group has the highest encounter volume and the highest average coverage at 39.38%.
 
-Out-of-Pocket Cost by Gender
+**Out-of-Pocket Cost by Gender**
+
 Average out-of-pocket costs and coverage were compared by gender.
 
 SQL Queries:
+
+```SQL
 --b. By Gender
 Select 
 	Patients.Gender,
@@ -969,18 +997,21 @@ Encounters.patient = Patients.Id
 Where Patients.Gender is Not Null
 Group by Patients.Gender
 Order by Avg_Out_of_Pocket_Cost
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Out%20of%20pocket%20cost%20burden%20by%20Gender.png)
 
 Insight: Male patients have a higher average out-of-pocket cost of $2,955.44, compared with $2,150.47 for female patients. Average coverage is slightly higher for male encounters.
 
-Uncovered Cost Trends Over Time
+**Uncovered Cost Trends Over Time**
+
 Average out-of-pocket costs and average payer coverage were analyzed by year to identify changes in patients' financial responsibility over time.
 
 SQL Queries:
---4. Uncovered Cost Trends Over Time
+
+```SQL
 	--Checking whether patient are paying more out of pocket as time progress
 Select 
 	Year(Encounters.Start) As Year,
@@ -990,40 +1021,48 @@ From Encounters
 Where Encounters.Total_Claim_Cost Is Not Null
 Group by Year(Encounters.Start)
 Order by Year
+```
 
 Result:
- 
+
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Uncovered%20Cost%20Trends%20Over%20Time.png)
 
 Insight: Average out-of-pocket costs fluctuated throughout the study period. The highest average was recorded in 2012 at $2,936.83, while the lowest was recorded in 2011 at $1,733.38. Average payer coverage ranged from 28.86% to 36.04% across the years.
 
 
-MEDICAL PROCEDURE ANALYSIS
+## MEDICAL PROCEDURE ANALYSIS
 This section analyzes medical procedures to identify the most frequently performed procedures, high-cost procedures, trends over time, associated conditions, and procedure distribution across encounter types.
 
-Most Common Procedures
+**Most Common Procedures**
+
 The most frequently performed procedures were identified by counting the number of times each procedure appeared in the dataset.
 
 SQL Queries:
---H. Procedure Analysis
---1. Top 10 Most common procedures by frequency
+
+```SQL
+--Top 10 Most common procedures by frequency
 Select Top 10
 	Description As Procedure_Name,
 	Count(*) As Procedure_Count
 From Procedures
 Group by Description
 Order by Procedure_Count DESC
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Top%2010%20Most%20common%20procedures%20by%20frequency.png)
 
 Insight: Assessment of health and social care needs was the most frequently recorded procedure, with 4,596 occurrences, followed by hospice care with 4,098 occurrences. Several of the most common procedures involve screening, assessment, and ongoing patient care.
 
-Most Expensive Procedures
+**Most Expensive Procedures**
+
 Procedures were analyzed based on their average procedure cost to identify procedures with the highest average financial cost.
 
 SQL Queries:
---2. Top 10 Most Expensive Procedures (Average Cost)
+
+```SQL
+--Top 10 Most Expensive Procedures (Average Cost)
 Select Top 10
 	Description As Procedure_Name,
 	AVG(Base_Cost) As Avg_Procedure_Cost,
@@ -1033,18 +1072,22 @@ Where Base_Cost is Not Null
 Group by Description
 Having Count(*) > 5 -- Filtering out very rare procedures for stability
 Order by Avg_Procedure_Cost DESC
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Top%2010%20Most%20Expensive%20Procedures.png)
 
 Insight: Coronary artery bypass grafting has the highest average procedure cost at approximately $47,085, followed by hemodialysis at $29,299. Some high-cost procedures have relatively low procedure counts, while electrical cardioversion has a much higher volume of 1,383 procedures.
 
-Procedure Trends Over Time
+**Procedure Trends Over Time**
+
 The number of procedures and average procedure count were analyzed by year to identify changes in procedure activity.
 
 SQL Queries:
---3. Procedure Trend Over Time
+
+```SQL
+--Procedure Trend Over Time
 Select 
 	Year(Start) As Year,
 	Count(*) As Total_Procedure,
@@ -1052,18 +1095,22 @@ Select
 From Procedures
 Group by Year(Start)
 Order by Year
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Procedure%20Trend%20Over%20Time.png)
 
 Insight: Total procedure volume reached its highest level in 2014 with 6,292 procedures. Procedure activity generally remained between approximately 3,800 and 5,000 procedures annually from 2015–2021 before dropping substantially in 2022.
 
-Procedure Reasons and Associated Conditions
+**Procedure Reasons and Associated Conditions**
+
 Procedures were grouped by their associated conditions to identify the medical reasons most frequently linked to procedures and their average base costs.
 
 SQL Queries:
---4. Top 10  Procedure Reasons (Linking to Conditions)
+
+```SQL
+--Top 10  Procedure Reasons (Linking to Conditions)
 Select Top 10
 	ReasonDescription,
 	Count(*) As Procedure_Count,
@@ -1072,17 +1119,21 @@ From Procedures
 Where ReasonDescription is Not Null
 Group by ReasonDescription
 Order by Procedure_Count Desc
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Top%2010%20%20Procedure%20Reasons.png)
 
 Insight: Normal pregnancy is associated with the highest procedure volume at 5,718 procedures. Atrial fibrillation has the highest average base cost among the listed conditions at approximately $22,476.
 
-Procedures by Encounter Type
+**Procedures by Encounter Type**
+
 Procedure volume and average base cost were analyzed across different encounter classes.
 
 SQL Queries:
+
+```SQL
 --5. Procedures Linked to Encounter Types
 Select 
 	EncounterClass,
@@ -1094,18 +1145,22 @@ On
 Procedures.Encounter = Encounters.ID
 Group by EncounterClass
 Order by Avg_base_cost Desc
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Procedures%20Linked%20to%20Encounter%20Types.png)
 
 Insight: Ambulatory encounters account for the highest procedure volume, with 17,822 procedures, followed by outpatient encounters with 14,958. Urgent care has the highest average base cost at approximately $21,752 despite having a relatively low procedure volume.
 
-Average Procedures per Encounter Class
+**Average Procedures per Encounter Class**
+
 The average number of procedures performed per encounter was analyzed by encounter class.
 
 SQL Queries:
---6. Average Number of procedures per Encounter Class
+
+```SQL
+--Average Number of procedures per Encounter Class
 Select
 	EncounterClass,
 	Count(*) / Count(Distinct Encounters.ID) As Avg_procedures_per_encounter
@@ -1115,91 +1170,97 @@ On
 Procedures.Encounter = Encounters.ID
 Group by EncounterClass
 Order by Avg_procedures_per_encounter Desc
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Average%20Number%20of%20procedures%20per%20Encounter%20Class.png)
 
 Insight: Wellness encounters have the highest average number of procedures per encounter at 5, followed by outpatient encounters at 4. Urgent care and emergency encounters average one procedure per encounter.
 
 
-KEY FINDINGS & INSIGHTS
+## KEY FINDINGS & INSIGHTS
 The analysis identified several important patterns across patient demographics, healthcare encounters, financial costs, insurance coverage, procedures, and readmissions.
 
-Patient Demographic Insights
-•	The patient population is heavily concentrated among older adults, with 587 patients aged 65+.
-•	The average patient age generally increased over the study period, reaching 79 years in 2022.
-•	Gender distribution was relatively balanced, with males representing 50.72% and females 49.28%.
-•	White patients represented the largest racial group at 69.82%.
-•	80.39% of patients were non-Hispanic.
-•	Married patients represented 80.49% of the population.
-•	Suffolk County had the highest patient concentration, with 644 patients.
+**Patient Demographic Insights**
+- The patient population is heavily concentrated among older adults, with 587 patients aged 65+.
+- The average patient age generally increased over the study period, reaching 79 years in 2022.
+- Gender distribution was relatively balanced, with males representing 50.72% and females 49.28%.
+- White patients represented the largest racial group at 69.82%.
+- 80.39% of patients were non-Hispanic.
+- Married patients represented 80.49% of the population.
+- Suffolk County had the highest patient concentration, with 644 patients.
 
-Encounter Insights
-•	Annual encounter volume reached its highest point in 2014 with 3,885 encounters and increased again to 3,530 in 2021.
-•	February recorded the highest monthly encounter volume with 3,023 encounters.
-•	Ambulatory encounters represented the largest encounter category at 44%, followed by outpatient encounters at 22%.
-•	Inpatient encounters had the longest average duration at 36 minutes based on the engineered duration field.
-•	Chronic congestive heart failure had the highest encounter frequency among the listed diagnoses, with 1,738 encounters.
-•	Normal pregnancy generated the highest total cost among the listed diagnoses, at approximately $20.9 million.
+**Encounter Insights**
+- Annual encounter volume reached its highest point in 2014 with 3,885 encounters and increased again to 3,530 in 2021.
+- February recorded the highest monthly encounter volume with 3,023 encounters.
+- Ambulatory encounters represented the largest encounter category at 44%, followed by outpatient encounters at 22%.
+- Inpatient encounters had the longest average duration at 36 minutes based on the engineered duration field.
+- Chronic congestive heart failure had the highest encounter frequency among the listed diagnoses, with 1,738 encounters.
+- Normal pregnancy generated the highest total cost among the listed diagnoses, at approximately $20.9 million.
 
-Financial & Insurance Insights
-•	Total claim costs amounted to approximately $101.5 million.
-•	NO_INSURANCE accounted for the largest total claim cost at approximately $49.3 million.
-•	Medicare had the highest encounter volume among the payers, with 11,371 encounters.
-•	Medicaid had the highest average payer coverage at 74.55%, followed by Medicare at 62.95%.
-•	Encounters without insurance had the highest average out-of-pocket cost at approximately $5,593.
-•	The 18–34 age group had the highest average out-of-pocket cost at approximately $4,869.
-•	Male encounters had a higher average out-of-pocket cost than female encounters.
+**Financial & Insurance Insights**
+- Total claim costs amounted to approximately $101.5 million.
+- NO_INSURANCE accounted for the largest total claim cost at approximately $49.3 million.
+- Medicare had the highest encounter volume among the payers, with 11,371 encounters.
+- Medicaid had the highest average payer coverage at 74.55%, followed by Medicare at 62.95%.
+- Encounters without insurance had the highest average out-of-pocket cost at approximately $5,593.
+- The 18–34 age group had the highest average out-of-pocket cost at approximately $4,869.
+- Male encounters had a higher average out-of-pocket cost than female encounters.
 
-Procedure Insights
-•	Assessment of health and social care needs was the most frequently recorded procedure, with 4,596 occurrences.
-•	Coronary artery bypass grafting had the highest average procedure cost at approximately $47,085.
-•	Total procedure volume was highest in 2014 with 6,292 procedures.
-•	Normal pregnancy was associated with the highest procedure volume, with 5,718 procedures.
-•	Atrial fibrillation had the highest average base cost among the listed procedure-associated conditions at approximately $22,476.
-•	Ambulatory encounters accounted for the highest procedure volume with 17,822 procedures.
-•	Wellness encounters had the highest average number of procedures per encounter at 5.
+**Procedure Insights**
+- Assessment of health and social care needs was the most frequently recorded procedure, with 4,596 occurrences.
+- Coronary artery bypass grafting had the highest average procedure cost at approximately $47,085.
+- Total procedure volume was highest in 2014 with 6,292 procedures.
+- Normal pregnancy was associated with the highest procedure volume, with 5,718 procedures.
+- Atrial fibrillation had the highest average base cost among the listed procedure-associated conditions at approximately $22,476.
+- Ambulatory encounters accounted for the highest procedure volume with 17,822 procedures.
+- Wellness encounters had the highest average number of procedures per encounter at 5.
 
-Readmission Insights
-•	The readmission analysis showed substantial variation in the number of repeated encounters across patients.
-•	Several patients had relatively few repeated encounters, while some patients had substantially higher encounter counts.
-•	The highest recorded patient readmission count in the analyzed results was 824.
-•	Patients with unusually high numbers of repeated encounters represent potential areas for further investigation into recurring healthcare utilization and underlying conditions.
+**Readmission Insights**
+- The readmission analysis showed substantial variation in the number of repeated encounters across patients.
+- Several patients had relatively few repeated encounters, while some patients had substantially higher encounter counts.
+- The highest recorded patient readmission count in the analyzed results was 824.
+- Patients with unusually high numbers of repeated encounters represent potential areas for further investigation into recurring healthcare utilization and underlying conditions.
 
-RECOMMENDATIONS
-
+## RECOMMENDATIONS
 Based on the findings from the analysis, the following recommendations can support healthcare management, cost management, patient care, and future analytical work.
 
-Recommendations for Healthcare Management
-•	Monitor healthcare utilization trends, particularly changes in annual and monthly encounter volumes.
-•	Pay attention to the high concentration of older patients when planning healthcare resources and services.
-•	Monitor high-volume encounter categories, particularly ambulatory and outpatient services.
-•	Investigate patients with unusually high numbers of repeated encounters to better understand the factors contributing to frequent healthcare utilization.
-•	Use demographic and geographic patterns to support resource allocation and service planning.
+**Recommendations for Healthcare Management**
+- Monitor healthcare utilization trends, particularly changes in annual and monthly encounter volumes.
+- Pay attention to the high concentration of older patients when planning healthcare resources and services.
+- Monitor high-volume encounter categories, particularly ambulatory and outpatient services.
+- Investigate patients with unusually high numbers of repeated encounters to better understand the factors contributing to frequent healthcare utilization.
+- Use demographic and geographic patterns to support resource allocation and service planning.
 
-Recommendations for Cost Management
-•	Investigate the high claim costs associated with uninsured encounters to understand the financial impact of limited insurance coverage.
-•	Monitor diagnoses and procedures with high average or total costs, such as sepsis, coronary artery bypass grafting, and hemodialysis.
-•	Analyze payer coverage patterns to identify areas of high patient financial responsibility.
-•	Monitor out-of-pocket costs across age groups and genders to identify differences in patient financial burden.
-•	Track uncovered costs over time to identify significant changes in healthcare affordability.
+**Recommendations for Cost Management**
+- Investigate the high claim costs associated with uninsured encounters to understand the financial impact of limited insurance coverage.
+- Monitor diagnoses and procedures with high average or total costs, such as sepsis, coronary artery bypass grafting, and hemodialysis.
+- Analyze payer coverage patterns to identify areas of high patient financial responsibility.
+- Monitor out-of-pocket costs across age groups and genders to identify differences in patient financial burden.
+- Track uncovered costs over time to identify significant changes in healthcare affordability.
 
-Recommendations for Patient Care
-•	Use the demographic profile of patients to support appropriate planning for patient services, particularly for the large 65+ population.
-•	Monitor frequently occurring conditions such as chronic congestive heart failure and hyperlipidemia.
-•	Pay attention to patients with high numbers of repeated encounters, as they may require further assessment or coordinated care.
-•	Continue monitoring preventive and assessment procedures, including depression screening, substance-use assessment, and medication reconciliation.
-•	Use procedure and encounter patterns to identify opportunities for improving continuity and coordination of care.
+**Recommendations for Patient Care**
+- Use the demographic profile of patients to support appropriate planning for patient services, particularly for the large 65+ population.
+- Monitor frequently occurring conditions such as chronic congestive heart failure and hyperlipidemia.
+- Pay attention to patients with high numbers of repeated encounters, as they may require further assessment or coordinated care.
+- Continue monitoring preventive and assessment procedures, including depression screening, substance-use assessment, and medication reconciliation.
+- Use procedure and encounter patterns to identify opportunities for improving continuity and coordination of care.
 
-Recommendations for Further Analysis
-•	Investigate the causes of extremely high readmission counts among individual patients.
-•	Perform deeper analysis of the relationship between diagnoses, procedures, encounter types, and healthcare costs.
-•	Analyze patient-level healthcare utilization to identify high-utilization patient groups.
-•	Examine insurance coverage and out-of-pocket costs at the patient level.
-•	Conduct time-series analysis to investigate changes in healthcare utilization and costs over the study period.
-•	Develop dashboards to monitor key healthcare, financial, and utilization indicators.
-•	Extend the analysis with statistical or machine learning techniques to identify factors associated with high healthcare costs or repeated encounters.
+**Recommendations for Further Analysis**
+- Investigate the causes of extremely high readmission counts among individual patients.
+- Perform deeper analysis of the relationship between diagnoses, procedures, encounter types, and healthcare costs.
+- Analyze patient-level healthcare utilization to identify high-utilization patient groups.
+- Examine insurance coverage and out-of-pocket costs at the patient level.
+- Conduct time-series analysis to investigate changes in healthcare utilization and costs over the study period.
+- Develop dashboards to monitor key healthcare, financial, and utilization indicators.
+- Extend the analysis with statistical or machine learning techniques to identify factors associated with high healthcare costs or repeated encounters.
 
+## CONCLUSION
+This project demonstrated how SQL can be used to transform healthcare data into meaningful insights for healthcare and financial analysis. Using synthetic patient data from Massachusetts General Hospital covering 2011–2022, the analysis examined patient demographics, healthcare encounters, diagnoses, insurance coverage, costs, procedures, and readmissions.
 
-CONCLUSION
+The project also demonstrated practical SQL skills including database relationships, data quality assessment, error correction, feature engineering aggregation, joins, and analytical querying.
+
+The findings revealed a patient population largely concentrated among older adults, significant variation in healthcare utilization and encounter types, substantial differences in insurance coverage and out-of-pocket costs, and notable variation in procedure volume and cost.
+
+Overall, the analysis provides a structured view of patient characteristics, healthcare utilization, and financial patterns within the dataset. It also demonstrates how SQL-based healthcare analytics can support data-driven decision-making and provide a foundation for deeper statistical, business intelligence, or machine learning analysis.
