@@ -668,7 +668,7 @@ Result:
 
 Insight: Suffolk County has the highest concentration of patients, with 644 patients, followed by Norfolk and Middlesex Counties. Essex County has the smallest representation, with only one patient.
 
-## Mhttps://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Class%20Distribution.pngEDICAL ENCOUNTER ANALYSIS
+## MEDICAL ENCOUNTER ANALYSIS
 This section analyzes healthcare encounters to understand encounter volume, service types, duration, diagnoses, readmissions, and associated costs.
 
 **Encounter Volume Over Time**
@@ -713,7 +713,7 @@ Order by
 
 Result:
 
-![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Class%20Distribution.png)
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Trend%20by%20Month.png)
 
 Insight: February recorded the highest number of encounters (3,023), while October recorded the lowest (2,089). The results show some variation in monthly healthcare utilization.
 
@@ -740,7 +740,7 @@ Order by
 
 Result:
 
-![]() 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Class%20Distribution.png) 
 
 Insight: Ambulatory encounters account for the largest share (44%), followed by outpatient encounters at 22%. Inpatient encounters represent the smallest proportion among the listed encounter classes at 4%.
 
