@@ -253,40 +253,48 @@ Foreign Key (Patient) References Patients (id)
 
 Database Diagram:
 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Data%20Modelling.png)
 
- 
-
-DATA QUALITY ASSESSMENT
+## DATA QUALITY ASSESSMENT
 Before analysis, the dataset was assessed for duplicates, missing values, unreasonable costs, and date inconsistencies.
 
-Duplicate Record Checks
+**Duplicate Record Checks**
+
 Duplicate records were checked in the Patients, Encounters, and Procedures tables. No duplicates were identified.
 
-Missing Value Checks
+**Missing Value Checks**
+
 Key demographic, encounter, and procedure fields were checked for missing values, including dates, patient IDs, payer IDs, gender, race, ethnicity, and procedure information. No missing values were identified in the fields tested.
 
-Outlier Checks
+**Outlier Checks**
+
 Cost fields were checked for unreasonable negative values. No negative costs were identified in the Encounters or Procedures tables.
 
-Cost Validation
+**Cost Validation**
+
 Encounter costs were validated by checking whether Payer_Coverage exceeded Total_Claim_Cost, which could indicate an inconsistent record. No such inconsistencies were identified.
 
-Date Consistency Checks
+**Date Consistency Checks**
+
 Encounter dates were checked to ensure that the Stop date was not earlier than the Start date. One invalid encounter date was identified and corrected.
 Patient death dates were also checked against birth dates, with no invalid death dates identified.
 
-Encounter After Patient Death
+**Encounter After Patient Death**
+
 Encounters occurring after a patient's recorded death date were investigated. 68 potential cases were identified. These records were retained because such occurrences could potentially reflect data or real-world circumstances that could not be conclusively determined from the available data.
 
-Data Quality Findings
+**Data Quality Findings**
+
 Overall, the dataset was largely consistent, with no duplicates, missing values in the tested fields, or negative costs identified. One invalid encounter date was corrected, while 68 encounters occurring after recorded death dates were retained for further consideration.
+
 SQL Queries:
---B. Data quality checks:
+
+```SQL
+--Data quality checks:
 -- Patients Table
 	-- Checking for duplicate values
 Select Distinct *
 from Patients
---(No duplicates found)
 
 	--Ckecking missing demographics
 Select 
@@ -295,13 +303,11 @@ Select
 	Sum (CASE when Race is null then 1 else 0 End) As Missing_Gender,
 	Sum (CASE when Ethnicity is null then 1 else 0 End) As Missing_Ethnicity
 From Patients
---(No missing Demographics)
 
 --Encounter Table
 	--Checking for duplicate values
 Select Distinct *
 From Encounters
---(No duplicates found)
 
 	--Ckecking missing demographics
 Select
@@ -310,13 +316,11 @@ Select
 	Sum (Case when Payer is null then 1 else 0 end) As Missing_payer,
 	Sum (Case when patient is null then 1 else 0 end) As Missing_patient_ID
 From encounters
---(No missing Demographics)
 
 --Procedures Table
 	--Checking for duplicate values
 Select Distinct *
 From Procedures
---(No duplicates found)
 
 	--Ckecking missing demographics
 Select 
@@ -325,10 +329,8 @@ Select
 	Sum (Case when code is null then 1 else 0 end) As Missing_procedure_code,
 	Sum (Case when description is null then 1 else 0 end) As Missing_description
 From Procedures
---(No missing Demographics)
 
-
---C. OUTLIERS
+--OUTLIERS
 --Checking for unreasonable values (like negative costs)
 
 --Encounters Table: Cost Outliers
@@ -337,21 +339,18 @@ Select
 	Count (*) As Negative_Base_Encounter_Cost
 From Encounters
 Where Base_Encounter_Cost < 0
---(No unreasonable values)
 
 	--For Total_Claim_Cost
 Select 
 	Count (*) As Negative_Total_Claim_Cost
 From Encounters
 Where Total_Claim_Cost < 0
---(No unreasonable values)
 
 	--Where Payer_Coverage > Total_Claim_Cost (Possible Error)
 Select 
 	Count (*) As Possible_Error
 From Encounters
 Where Payer_Coverage > Total_Claim_Cost
---(No unreasonable values)
 
 --Procedures Table: Cost Outlier
 	--For Base_Cost
@@ -359,15 +358,13 @@ Select
 	Count (*) As Negative_Base_Cost
 From Procedures
 Where Base_Cost < 0
---(No unreasonable values)
 
---D. CONSISTENCY CHECKS
+--CONSISTENCY CHECKS
 --Encounter Start and Stop Logic: Checking where the stop of encounter is lesser than start of encounter
 Select 
 	Count (*) As Invalid_Date
 From Encounters
 Where STOP < START
---(There is an invalide date here that needs to be attended to)
 
 --DeathDate Consistency: Checking for Patients with DeathDate before BirthDate
 Select 
@@ -375,7 +372,6 @@ Select
 From Patients
 Where DeathDate is NOT NULL
 And DeathDate < BirthDate
---(No unreasonable values)
 
 --Encounters after Death(Possible Error)
 Select 
@@ -386,28 +382,33 @@ On
 Encounters.PATIENT = Patients.Id
 Where DeathDate Is NOT NULL
 And Encounters.START > patients.DeathDate
---(68 Possible errors)
+```
 
+## DATA CLEANING & ERROR CORRECTION
+**Identified Data Issues**
 
-DATA CLEANING & ERROR CORRECTION
-
-Identified Data Issues
 The data quality assessment identified one invalid encounter date where the Stop date occurred before the Start date. In addition, 68 encounters were identified as occurring after recorded patient death dates.
 
-Invalid Encounter Dates
+**Invalid Encounter Dates**
+
 The Encounters table was checked for records where Stop < Start. One invalid record was identified and investigated for correction.
 
-Correction of Encounter Start and Stop Dates
+**Correction of Encounter Start and Stop Dates**
+
 The identified record was corrected by swapping the Start and Stop values, assuming the dates had been entered in the wrong order.
 
-Treatment of Encounters After Death
+**Treatment of Encounters After Death**
+
 The 68 encounters occurring after recorded death dates were not removed. They were retained because the available data did not provide enough information to determine whether these represented actual errors or possible real-world/data-recording circumstances.
 
-Final Data Quality Status
+**Final Data Quality Status**
+
 After correction, the identified invalid encounter date was resolved. Other checked quality issues did not require modification, and the 68 post-death encounters were retained for analysis.
 
 SQL Queries:
---E. FIXING ERRORS AND OUTLIERS
+
+```SQL
+--FIXING ERRORS AND OUTLIERS
 --For the encounters table, checking for the date whose STOP is lesser than START
 Select *
 From Encounters
@@ -418,16 +419,19 @@ Update Encounters
 Set START = STOP,
 	STOP = START
 Where STOP < START
+```
 
-
-FEATURE ENGINEERING
+## FEATURE ENGINEERING
 Feature engineering was performed to create additional fields that would make the healthcare data more useful for analysis. Three features were added: patient age at encounter, encounter duration, and out-of-pocket cost.
 
-Patient Age at Encounter
+**Patient Age at Encounter**
+
 A Patients_Age column was added to the Encounters table. Patient age was calculated using the patient's date of birth and the date of the encounter.
 
 SQL Queries:
---F. Patient Age at Encounter (in years)
+
+```SQL
+--Patient Age at Encounter (in years)
 	--Create a new column - Patient Age
 Alter Table Encounters
 Add Patients_Age INT
@@ -439,13 +443,17 @@ From Encounters
 Join Patients 
 on
 encounters.patient = patients.id
+```
 Purpose: To determine the patient's age at the time of each healthcare encounter and support age-based demographic analysis.
 
-Encounter Duration
+**Encounter Duration**
+
 An Encounter_Duration column was added to capture the length of each encounter. The duration was calculated from the encounter start and stop times.
 
 SQL Queries:
---G. Encounter Duration (In hours)
+
+```SQL
+--Encounter Duration (In hours)
 --Create a new column - Encounter Duration
 Alter Table Encounters
 Add Encounter_Duration INT
@@ -453,14 +461,17 @@ Add Encounter_Duration INT
 --Update the column above
 Update Encounters
 Set Encounter_Duration = DATEDIFF(MINUTE, Start, stop)
-
+```
 Purpose: To measure how long patients spent in each encounter and support analysis of healthcare utilization.
 
-Out-of-Pocket Cost
+**Out-of-Pocket Cost**
+
 An Out_Of_Pocket_Cost column was created to calculate the portion of the total claim cost not covered by the payer.
 
 SQL Queries:
---H. Out of pocket cost
+
+```SQL
+--Out of pocket cost
 --Create a new column
 Alter table Encounters
 Add Out_Of_Pocket_Cost Float
@@ -468,17 +479,20 @@ Add Out_Of_Pocket_Cost Float
 	--Update the column above
 Update Encounters
 Set Out_Of_Pocket_Cost = Round(TOTAL_CLAIM_COST - PAYER_COVERAGE,2)
+```
 
-
-PATIENT DEMOGRAPHIC ANALYSIS
+## PATIENT DEMOGRAPHIC ANALYSIS
 This section examines the demographic characteristics of patients in the dataset, including age, gender, race, ethnicity, marital status, and geographic distribution. The analysis helps provide an understanding of the population served by the hospital.
 
-Patient Age Groups
+**Patient Age Groups**
+
 Patients were grouped into four age categories to understand the distribution of the patient population.
 
 SQL Queries:
---I. Patient Demographic Analysis
-	--1a.Age Group Categorization
+
+```SQL
+--Patient Demographic Analysis
+	--Age Group Categorization
 Select 
 	CASE 
 		When DATEDIFF(Year, BirthDate, '2022-12-31') < 18 Then '0-17'
@@ -499,20 +513,23 @@ Group by
 		Else '65+'
 		End
 Order By Age_Group
+```
 
-Result:
+Result: 
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Age%20Group%20Categorization.png)
 
 Insight: The 65+ age group dominates the patient population, with 587 patients. This indicates that the dataset is heavily concentrated among older adults, while patients aged 18–34 represent the smallest group.
 
+**Age Distribution Over Time**
 
-Age Distribution Over Time
 Average, youngest, and oldest patient ages were analyzed by year to understand how the age profile changed over the study period.
 
 SQL Queries:
-	--c. Age Distribution by year
-	--For yearly comparison, use encounter table (Age at encounter)
+
+```SQL
+	--Age Distribution by year
+	--For yearly comparison (Age at encounter)
 Select 
 	Year(encounters.start) As Year,
 	AVG(DATEDIFF(Year, patients.BirthDate, encounters.start)) As AvgAge,
@@ -524,16 +541,22 @@ On
 encounters.patient = patients.ID
 Group by Year(encounters.start)
 Order by Year
+```
 
 Result:
+
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Age%20Distribution%20by%20Year.png)
  
 Insight: The average patient age generally increased over the study period, reaching 79 years in 2022. The youngest age also increased from 20 to 31, while the oldest age increased from 89 to 99.
 
-Gender Distribution
+**Gender Distribution**
+
 The patient population was analyzed by gender.
 
 SQL Queries:
-	--2. Gender Distribution
+
+```SQL
+	--Gender Distribution
 SELECT 
     Gender,
     COUNT(*) AS PatientCount,
@@ -541,19 +564,22 @@ SELECT
 FROM Patients
 WHERE Gender IS NOT NULL
 GROUP BY Gender;
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Gender%20Distribution.png)
 
 Insight: The gender distribution is relatively balanced, with males representing 50.72% and females 49.28% of the analyzed patients.
 
-Race Distribution
+**Race Distribution**
+
 Patient counts were analyzed across the available racial categories.
 
 SQL Queries:
-	--3. Race and Ethnicity Breakdown
-		--Race Breakdown
+
+```SQL
+	--Race Breakdown
 SELECT 
     Race,
     COUNT(*) AS PatientCount,
@@ -561,16 +587,21 @@ SELECT
 FROM Patients
 WHERE Race IS NOT NULL
 GROUP BY Race;
+```
 
 Result:
 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Race%20Breakdown.png)
  
 Insight: White patients account for the largest proportion, representing 69.82% of the analyzed population. Black patients account for 16.74%, while Asian patients represent 9.34%.
 
-Ethnicity Distribution
+**Ethnicity Distribution**
+
 Patient ethnicity was analyzed to understand the composition of the population.
 
 SQL Queries:
+
+```SQL
 	--Ethnicity Breakdown
 SELECT 
     Ethnicity,
@@ -579,18 +610,22 @@ SELECT
 FROM Patients
 WHERE Ethnicity IS NOT NULL
 GROUP BY Ethnicity;
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Ethnicity%20Breakdown.png)
 
 Insight: Non-Hispanic patients represent the majority of the population at 80.39%, while Hispanic patients account for 19.61%.
 
-Marital Status Analysis
+**Marital Status Analysis**
+
 Patients were grouped by marital status.
 
 SQL Queries:
-	--4. Marital Status Analysis
+
+```SQL
+	--Marital Status Analysis
 Select
 	Marital,
 	CASE	
@@ -602,18 +637,21 @@ Select
 	Round(100.0 * Count(*) / (Select Count(*) From Patients),2) As Percentage
 From Patients
 Group By Marital
+````
 
 Result:
 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Marital%20Status%20Analysis.png)
  
-
 Insight: The majority of patients are married (80.49%), while 19.40% are single. Only one patient has an unknown marital status.
 
-Geographic Distribution by County
+**Geographic Distribution by County**
+
 Patient distribution was analyzed by county to identify where the patient population is concentrated.
 
 SQL Queries:
-	--5. Goegraphical Distribution
+
+```SQL
 	--By County
 Select
 	County,
@@ -622,40 +660,47 @@ From Patients
 Where state is Not Null
 Group by County
 Order by PatientCount DESC
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Goegraphical%20Distribution%20By%20County.png)
 
 Insight: Suffolk County has the highest concentration of patients, with 644 patients, followed by Norfolk and Middlesex Counties. Essex County has the smallest representation, with only one patient.
 
-
-MEDICAL ENCOUNTER ANALYSIS
+## Mhttps://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Class%20Distribution.pngEDICAL ENCOUNTER ANALYSIS
 This section analyzes healthcare encounters to understand encounter volume, service types, duration, diagnoses, readmissions, and associated costs.
 
-Encounter Volume Over Time
+**Encounter Volume Over Time**
+
 The number of healthcare encounters was analyzed by year to identify changes in healthcare utilization over the study period.
 
 SQL Queries:
---F. ENCOUNTER ANALYSIS
---1. Encounter Trend over time
+
+```SQL
+--Encounter Trend over time
 Select 
 	Year(Start) As Year,
 	Count (*) As Encounter_Count
 From Encounters
 Group by Year(Start)
 Order by Year
+```
 
 Result:
- 
+
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Trend%20Over%20Time.png)
 
 Insight: Encounter volume increased from 2011 and reached its highest level in 2014 with 3,885 encounters. Volume remained relatively stable from 2015–2019, increased again in 2020–2021, and dropped substantially in 2022.
 
-Monthly Encounter Trends
+**Monthly Encounter Trends**
+
 Encounters were grouped by month to identify seasonal patterns in healthcare utilization.
 
 SQL Queries:
---2. Encounter Trend by Month
+
+```SQL
+--Encounter Trend by Month
 Select
 	Month(Start) As Month,
 	Count (*) As Encounter_Count
@@ -664,17 +709,22 @@ Group by
 	Month(Start)
 Order by
 	Month
+```
 
 Result:
 
- 
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Trend%20by%20Month.png)
 
 Insight: February recorded the highest number of encounters (3,023), while October recorded the lowest (2,089). The results show some variation in monthly healthcare utilization.
 
-Encounter Types
+**Encounter Types**
+
 Encounters were analyzed by encounter class to understand the distribution of healthcare services.
+
 SQL Queries:
---3. Encounter Types (Encounter Class)
+
+```SQL
+--Encounter Types (Encounter Class)
 Select 
 	EncounterClass,
 	Count (*) As Total_Encounter,
@@ -686,11 +736,11 @@ Group by
 	EncounterClass
 Order by 
 	Total_Encounter
-
+```
 
 Result:
 
- 
+![]() 
 
 Insight: Ambulatory encounters account for the largest share (44%), followed by outpatient encounters at 22%. Inpatient encounters represent the smallest proportion among the listed encounter classes at 4%.
 
