@@ -713,7 +713,7 @@ Order by
 
 Result:
 
-![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Trend%20by%20Month.png)
+![](https://github.com/Oluwaseun2024-ctrl/Hospital-Records-Analysis-With-SQL/blob/main/Encounter%20Class%20Distribution.png)
 
 Insight: February recorded the highest number of encounters (3,023), while October recorded the lowest (2,089). The results show some variation in monthly healthcare utilization.
 
